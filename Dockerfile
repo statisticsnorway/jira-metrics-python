@@ -1,4 +1,4 @@
-from python
+from circleci/python
 
 WORKDIR /usr/src/app
 
