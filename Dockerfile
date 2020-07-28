@@ -1,4 +1,4 @@
-from circleci/python
+from fnndsc/ubuntu-python3:latest
 
 WORKDIR /usr/src/app
 
