@@ -1,4 +1,4 @@
-from python:alpine
+from fnndsc/ubuntu-python3:latest
 
 WORKDIR /usr/src/app
 
