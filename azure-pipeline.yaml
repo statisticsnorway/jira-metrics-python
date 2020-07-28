@@ -25,14 +25,6 @@ variables:
   - name: repoName
     value: 'prod-bip/ssb/stratus/jira-metrics-python'
 
-resources:
-  repositories:
-    - repository: templates
-      type: github
-      name: 'statisticsnorway/azure-pipelines-templates'
-      ref: refs/tags/0.0.3
-      endpoint: statisticsnorway (6)
-
 # Job which builds Docker image, pushes this to GCR and checks for any image vulnerabilities
 jobs:
   - job: buildTestDockerBuildDockerPush
@@ -94,7 +86,4 @@ jobs:
           imageHost: 'https://eu.gcr.io/'
           image: $(reponame)
           imageTag: '$(Build.SourceBranchName)-imagescan-$(fullSha)'
-          
-  - template: docker/docker-tag-for-production.yml@templates
-    parameters:
-      tagToTag: 'main-imagescan-$(fullSha)'
+
