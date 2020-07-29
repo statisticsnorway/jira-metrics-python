@@ -1,12 +1,6 @@
-from fnndsc/ubuntu-python3:latest
+from python:slim
 
-RUN apt-get update \
-    && apt-get install -y \
-        vim \
-        curl \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN /usr/bin/python3 -m pip install --upgrade pip
+RUN /usr/local/bin/python -m pip install --upgrade pip
 
 WORKDIR /usr/src/app
 
@@ -15,4 +9,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD [ "./metrics.py" ]
+USER 9000
+
+CMD ["python", "./metrics.py" ]
