@@ -1,4 +1,4 @@
-from python:slim
+from python:slim-stretch
 
 RUN /usr/local/bin/python -m pip install --upgrade pip
 
