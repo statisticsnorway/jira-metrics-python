@@ -1,9 +1,17 @@
 from atlassian import Jira
 import prometheus_client as prom
+from google.cloud import secretmanager
+import google.auth
 import time
 
-# TODO Get API-key for jira connection from Secret manager
-api_key = "dummy-key"
+# Get credenetials from Workload Identity
+credentials = google.auth.default()
+
+# Create client for secret manager
+client = secretmanager.SecretManagerServiceClient()
+# Fetch secret from secret manager
+name = client.secret_version_path('ssb-team-stratus', 'jira-api-key', 'latest')
+api_key = client.access_secret_version(name)
 
 def jira():
         jira = Jira(
