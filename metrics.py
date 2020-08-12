@@ -3,8 +3,6 @@ import sys
 import json
 import google.auth
 from google.cloud import secretmanager
-import google.auth
-from google.cloud import secretmanager
 import http.server
 import signal
 from atlassian import Jira

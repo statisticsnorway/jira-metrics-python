@@ -33,6 +33,10 @@ jobs:
     condition: not(startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     # Steps in this Job
     steps:
+      # Test Python code
+      - task: Python@0
+        displayName: 'Pyton test'
+        -script: pytest -v
       # Build Docker image
       - task: Docker@2
         displayName: 'Docker build'
