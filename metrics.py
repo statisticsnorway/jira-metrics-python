@@ -36,14 +36,19 @@ def getJiraConnection():
         url='https://statistics-norway.atlassian.net',
         username='egk@ssb.no',
         password=apiKey)
-        return jira_conn
     except HTTPError:
         print("Error in connection with Jira", file=sys.stderr)
+        jira_conn = None
+    return jira_conn
 
 jira_conn = getJiraConnection()
 
 def queryJira(jql, limitResults='None'):
-    return jira_conn.jql(jql,limit=limitResults)['total']
+    try:
+        return jira_conn.jql(jql,limit=limitResults)['total']
+    except HTTPError:
+        print("Error in connection with Jira", file=sys.stderr)
+
 
 # Read metric descriptions from file
 with open('metricdescriptions.json') as json_file:
@@ -53,7 +58,11 @@ for metric in metricdescriptions:
     result = {}
     if metric['type'].lower() == "gauge":
         result[metric['metric name']] = prom.Gauge(metric['metric name'], metric['description'])
-    result[metric['metric name']].set(queryJira(metric['jql'], metric['limit']))
+    try:
+        result[metric['metric name']].set(queryJira(metric['jql'], metric['limit']))
+    except:
+        print("Error in connection with Jira", file=sys.stderr)
+        
 
 if __name__ == '__main__':
     # First we collect the environment variables that were set in either
