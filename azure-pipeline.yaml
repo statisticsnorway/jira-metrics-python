@@ -33,6 +33,14 @@ jobs:
     condition: not(startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     # Steps in this Job
     steps:
+      # Test Python code
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: '3.8'
+      - script: |
+          pip install -r requirements.txt
+          pip install pytest
+          pytest -v
       # Build Docker image
       - task: Docker@2
         displayName: 'Docker build'

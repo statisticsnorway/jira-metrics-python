@@ -1,4 +1,6 @@
 from os import getenv
+import sys
+import json
 import google.auth
 from google.cloud import secretmanager
 import http.server
@@ -6,35 +8,61 @@ import signal
 from atlassian import Jira
 import prometheus_client as prom
 from livenessserver import LivenessServer
-
+from urllib.error import HTTPError
 
 def getApiKey():
-    # Get credenetials from Workload Identity
-    credentials = google.auth.default()
-    # Create client for secret manager
-    client = secretmanager.SecretManagerServiceClient()
-    # Fetch secret from secret manager
-    name = client.secret_version_path('ssb-team-stratus', 'jira-api-key', 'latest')
-    response = client.access_secret_version(name)
-    return response.payload.data
+    try:
+        # Get credenetials from Workload Identity
+        credentials = google.auth.default()
+    except:
+        print("Could not get credentials from Google Cloud", file=sys.stderr)
+    try:
+        # Create client for secret manager
+        client = secretmanager.SecretManagerServiceClient()
+        # Fetch secret from secret manager
+        name = client.secret_version_path('ssb-team-stratus', 'jira-api-key', 'latest')
+        response = client.access_secret_version(name)
+        apiKey = response.payload.data
+    except:
+        print("Could not get apiKey for Google Secret Manager", file=sys.stderr)
+        apiKey = None
+    return apiKey
 
 apiKey = getApiKey()
 
 def getJiraConnection():
-    return Jira(
+    try:
+        jira_conn = Jira(
         url='https://statistics-norway.atlassian.net',
         username='egk@ssb.no',
         password=apiKey)
+    except HTTPError:
+        print("Error in connection with Jira", file=sys.stderr)
+        jira_conn = None
+    return jira_conn
 
 jira_conn = getJiraConnection()
 
-def queryJira(jql, jira_conn, limitResults='None'):
-    return jira_conn.jql(jql,limit=limitResults)
+def queryJira(jql, limitResults='None'):
+    try:
+        return jira_conn.jql(jql,limit=limitResults)['total']
+    except HTTPError:
+        print("Error in connection with Jira", file=sys.stderr)
 
-def getTotalUnsolved():
-    jql = 'project = BIP AND status IN ("To Do", "Selected for development","In Progress", "QA")'
-    limit = 0 # Only return metainformation, no acutal issues
-    return queryJira(jql, jira_conn, limit).get('total')
+
+# Read metric descriptions from file
+with open('metricdescriptions.json') as json_file:
+    metricdescriptions = json.load(json_file)
+
+for metric in metricdescriptions:
+    result = {}
+    if metric['type'].lower() == "gauge":
+        result[metric['metric name']] = prom.Gauge(metric['metric name'], metric['description'])
+    try:
+        result[metric['metric name']].set(queryJira(metric['jql'], metric['limit']))
+    except:
+        print("Error in connection with Jira", file=sys.stderr)
+        
 
 if __name__ == '__main__':
     # First we collect the environment variables that were set in either
@@ -42,8 +70,6 @@ if __name__ == '__main__':
     listen_port = int(getenv('LISTEN_PORT', 8090))
     prom_listen_port = int(getenv('PROM_LISTEN_PORT', 8080))
 
-    gauge = prom.Gauge('jira_bip_active_issues', 'Backlog and active')
-    gauge.set(getTotalUnsolved())
     # Let the Prometheus client export its metrics on a separate port.
     prom.start_http_server(prom_listen_port)
     # Let our web application run and listen on the specified port.
