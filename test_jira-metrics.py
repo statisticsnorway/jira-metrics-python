@@ -1,21 +1,21 @@
-import metrics
+import jiracollector
 import requests
 from unittest import mock
 import unittest
 import pytest
 
-@mock.patch('metrics.getApiKey')
+@mock.patch('jiracollector.JiraCollector.getApiKey')
 def test_getApiKeyMock(mock_apikey):
     mock_apikey.return_value = "test_apikey"
-    result = metrics.getApiKey()
+    result = jiracollector.JiraCollector.getApiKey()
     return result
 
 assert test_getApiKeyMock() == "test_apikey"
 
-@mock.patch('metrics.getJiraConnection')
+@mock.patch('jiracollector.JiraCollector.getJiraConnection')
 def test_getJiraConnectionMock(mock_jiraconnection):
     mock_jiraconnection.return_value = "test_jiraconnection"
-    result = metrics.getJiraConnection()
+    result = jiracollector.JiraCollector.getJiraConnection()
     return result
 
 assert test_getJiraConnectionMock() == "test_jiraconnection"
