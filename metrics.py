@@ -24,7 +24,7 @@ def getApiKey():
         response = client.access_secret_version(name)
         apiKey = response.payload.data
     except:
-        print("Could not get apiKey for Google Secret Manager", file=sys.stderr)
+        print("Could not get apiKey from Google Secret Manager", file=sys.stderr)
         apiKey = None
     return apiKey
 
