@@ -46,19 +46,19 @@
         },
         {
             "name": "jira_updated_4w",
-            "description": "Latest activity more than 10 days, less than 4 weeks ago",
+            "description": "Latest activity more than 10 days and less than 4 weeks ago",
             "jql": "updatedDate <= -10d AND updatedDate > -4w",
             "limit": 0
         },
         {
             "name": "jira_updated_26w",
-            "description": "Latest activity more than a month, less than half year ago",
-            "jql": "updatedDate <= -2d AND updatedDate > -5d",
+            "description": "Latest activity more than a month and less than half a year ago",
+            "jql": "updatedDate <= -4w AND updatedDate > -26w",
             "limit": 0
         },
         {
             "name": "jira_updated_older",
-            "description": "Latest activity more than a month, less than half year ago",
+            "description": "Latest activity more than half a year ago",
             "jql": "updatedDate <= -26w",
             "limit": 0
         }
