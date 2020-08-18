@@ -97,6 +97,12 @@
             "description": "Number of issues currently In progress",
             "jql": "status = \"In progress\"",
             "limit": 0
+        },
+        {
+            "name": "jira_total_reopened",
+            "description": "Number of issues reopened at some point during their lifespan",
+            "jql": "status CHANGED FROM \"DONE\"",
+            "limit": 0
         }
     ]
 }
