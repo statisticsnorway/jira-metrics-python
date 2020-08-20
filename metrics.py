@@ -14,7 +14,7 @@ if __name__ == '__main__':
     # First we collect the environment variables that were set in either
     # the Dockerfile or the Kubernetes Pod specification.
     listen_port = int(getenv('LISTEN_PORT', 8090))
-    prom_listen_port = int(getenv('PROM_LISTEN_PORT', 8080))
+    prom_listen_port = int(getenv('PROM_LISTEN_PORT', 8081))
 
     # Let the Prometheus client export its metrics on a separate port.
     start_http_server(prom_listen_port)
