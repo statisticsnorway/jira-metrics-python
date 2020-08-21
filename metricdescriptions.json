@@ -61,6 +61,12 @@
             "description": "Latest activity more than half a year ago",
             "jql": "updatedDate <= -26w",
             "limit": 0
+        },
+			  {
+            "name": "jira_total_qa",
+            "description": "Number of issues currently in QA",
+            "jql": "status = \"QA\"",
+            "limit": 0
         }
     ]
 }
