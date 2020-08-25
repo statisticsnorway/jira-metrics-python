@@ -4,6 +4,9 @@
             "name": "BIP"
         },
         {
+            "name": "STRATUS"
+        },
+        {
             "name": "DAPLA"
         },
         {
@@ -62,10 +65,46 @@
             "jql": "updatedDate <= -26w",
             "limit": 0
         },
-			  {
+        {
+            "name": "jira_current_week_started",
+            "description": "Issues started during current week",
+            "jql": "status CHANGED FROM \"Selected for development\" TO \"In progress\" AFTER startOfWeek()",
+            "limit": 0
+        },
+        {
+            "name": "jira_current_week_done",
+            "description": "Issues finished during current week",
+            "jql": "status CHANGED TO \"Done\" AFTER startOfWeek() AND status=\"Done\"",
+            "limit": 0
+        },
+        {
+            "name": "jira_current_week_started_done",
+            "description": "Issues both started and finished during current week",
+            "jql": "status CHANGED FROM \"Selected for development\" TO \"In progress\" AFTER startOfWeek() AND status=\"Done\"",
+            "limit": 0
+        },
+        {
+            "name": "jira_last_week_started_current_week_done",
+            "description": "Issues started during last week, but finished during this week",
+            "jql": "(status CHANGED FROM \"Selected for development\" TO \"In progress\" AFTER startOfWeek(\"-1\") BEFORE startOfWeek()) AND (status CHANGED TO \"Done\" AFTER startOfWeek()) AND status=\"Done\"",
+            "limit": 0
+        },
+        {
             "name": "jira_total_qa",
             "description": "Number of issues currently in QA",
             "jql": "status = \"QA\"",
+            "limit": 0
+        },
+        {
+            "name": "jira_total_in_progress",
+            "description": "Number of issues currently In progress",
+            "jql": "status = \"In progress\"",
+            "limit": 0
+        },
+        {
+            "name": "jira_total_reopened",
+            "description": "Number of issues reopened at some point during their lifespan",
+            "jql": "status CHANGED FROM \"DONE\"",
             "limit": 0
         }
     ]
