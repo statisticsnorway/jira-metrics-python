@@ -53,6 +53,6 @@ class JiraCollector(object):
             for project in metricdescriptions['projects']:
                 key = metric['name'] + "{project_name=\"" + project['name'] + "\"}"
                 jql = "project = " + project['name'] + " AND " + metric['jql']
-                value = "\'" + str(self.queryJira(jql, metric['limit'])) + ".0\'"
+                value = str(self.queryJira(jql, metric['limit']))
                 self.result[key] = value
         return self.result
