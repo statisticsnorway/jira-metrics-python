@@ -1,39 +1,61 @@
-from os import getenv
-import sys
-import http.server
-import signal
-from livenessserver import LivenessServer
-from prometheus_client import start_http_server
-from prometheus_client.core import REGISTRY
+import asyncio
+import logging
+import json
+from aiohttp import web
+from aiocache import cached
+from aiocache.serializers import JsonSerializer
 from jiracollector import JiraCollector
 
-if __name__ == '__main__':
-    
-    REGISTRY.register(JiraCollector())
-    
-    # First we collect the environment variables that were set in either
-    # the Dockerfile or the Kubernetes Pod specification.
-    listen_port = int(getenv('LISTEN_PORT', 8090))
-    prom_listen_port = int(getenv('PROM_LISTEN_PORT', 8080))
 
-    # Let the Prometheus client export its metrics on a separate port.
-    start_http_server(prom_listen_port)
-    # Let our web application run and listen on the specified port.
-    httpd = http.server.HTTPServer(('localhost', listen_port), LivenessServer)
-    # Make sure you have the webserver signal when it's done.
-    httpd.ready = True
+@cached(ttl=45, key="function_key", serializer=JsonSerializer())
+async def getJiraCollector():
+    jiraCollector = JiraCollector()
+    return jiraCollector.collect()
 
-    # Simple handler function to show that we we're handling the SIGTERM
-    def do_shutdown(signum, frame):
-        global httpd
 
-        log = {'jira-metrics': {'message': 'Graceful shutdown.'}}
-        print(json.dumps(log))
-        threading.Thread(target=httpd.shutdown).start()
-        sys.exit(0)
+async def metrics(request):
+    metricsDict = await getJiraCollector()
+    metricsStr = str(metricsDict)
+    metricsStrReplaced = metricsStr[1:-1].replace('\'', '').replace('"', "'").replace(": ", " ").replace(",", "\n").replace(" j", "j")
+    return web.Response(text=metricsStrReplaced)
 
-    # We catch the SIGTERM signal here and shut down the HTTPServer
-    signal.signal(signal.SIGTERM, do_shutdown)
 
-    # Forever serve requests. Or at least until we receive the proper signal.
-    httpd.serve_forever()
+# It is also possible to cache the whole route, but for this you will need to
+# override `cached.get_from_cache` and regenerate the response since aiohttp
+# forbids reusing responses
+class CachedOverride(cached):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    async def get_from_cache(self, key):
+        try:
+            value = await self.cache.get(key)
+            if type(value) == web.Response:
+                return web.Response(
+                    body=value.body,
+                    status=value.status,
+                    reason=value.reason,
+                    headers=value.headers,
+                )
+            return value
+        except Exception:
+            logging.exception("Couldn't retrieve %s, unexpected error", key)
+
+def alive(request):
+    return web.Response(status=200, text="OK")
+
+def ready(request):
+    ready = True
+    if ready:
+        return web.Response(status=200, text="OK")
+    else:
+        return web.Response(status=503, text="Not ready yet")
+
+
+if __name__ == "__main__":
+    app = web.Application()
+    app.router.add_get('/', metrics)
+    app.router.add_get('/health/ready', ready)
+    app.router.add_get('/health/alive', ready)
+
+    web.run_app(app)

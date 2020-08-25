@@ -3,14 +3,13 @@ import json
 import google.auth
 from google.cloud import secretmanager
 from atlassian import Jira
-from prometheus_client.core import GaugeMetricFamily
 from urllib.error import HTTPError
 
 class JiraCollector(object):
     def __init__(self):
-        self.labels = ['project_name' ]
         self.api_key = self.getApiKey()
         self.jira_conn = self.getJiraConnection()
+        self.result = {}
 
     def getApiKey(self):
         try:
@@ -51,9 +50,9 @@ class JiraCollector(object):
         with open('metricdescriptions.json') as json_file:
             metricdescriptions = json.load(json_file)
         for metric in metricdescriptions['metrics']:
-            metric['name'] = GaugeMetricFamily(metric['name'], metric['description'], labels=self.labels)
             for project in metricdescriptions['projects']:
+                key = metric['name'] + "{project_name=\"" + project['name'] + "\"}"
                 jql = "project = " + project['name'] + " AND " + metric['jql']
-                value = self.queryJira(jql, metric['limit'])
-                metric['name'].add_metric([project['name']], value)
-            yield metric['name']
+                value = "\'" + str(self.queryJira(jql, metric['limit'])) + ".0\'"
+                self.result[key] = value
+        return self.result
