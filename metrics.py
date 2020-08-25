@@ -16,7 +16,7 @@ async def getJiraCollector():
 async def metrics(request):
     metricsDict = await getJiraCollector()
     metricsStr = str(metricsDict)
-    metricsStrReplaced = metricsStr[1:-1].replace('\'', '').replace('"', "'").replace(": ", " ").replace(",", "\n").replace(" j", "j")
+    metricsStrReplaced = metricsStr[1:-1].replace('\'', '').replace(': "', ' ').replace('0"', '0').replace(",", "\n").replace(" j", "j")
     return web.Response(text=metricsStrReplaced)
 
 
