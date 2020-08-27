@@ -40,7 +40,7 @@ def ready(request):
 if __name__ == "__main__":
     # Create a background thread to collect metrics in a "cache"
     scheduler = BackgroundScheduler()
-    job = scheduler.add_job(collectJiraMetrics, 'interval', minutes=60, max_instances=1, next_run_time=datetime.now())
+    job = scheduler.add_job(collectJiraMetrics, 'interval', minutes=15, max_instances=1, next_run_time=datetime.now())
     scheduler.start()
     
     # Create a webapp to serve cached metrics on / endpoint
