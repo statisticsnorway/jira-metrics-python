@@ -24,6 +24,18 @@ variables:
     value: 'eu.gcr.io/prod-bip/ssb/stratus/jira-metrics-python'
   - name: repoName
     value: 'prod-bip/ssb/stratus/jira-metrics-python'
+  - name: imageTagBeforeVulnerabilityScan
+    value: 'imagescan-$(Build.SourceBranchName)-$(fullSha)'
+  - name: imageTagAfterVulnerabilityScan
+    value: $(Build.SourceBranchName)-$(fullSha)    
+
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      name: statisticsnorway/azure-pipelines-templates
+      ref: refs/tags/0.0.3
+      endpoint: github
 
 # Job which builds Docker image, pushes this to GCR and checks for any image vulnerabilities
 jobs:
@@ -49,7 +61,7 @@ jobs:
           command: 'build'
           Dockerfile: 'Dockerfile'
           tags: |
-            $(Build.SourceBranchName)-imagescan-$(fullSha)
+            $(imageTagBeforeVulnerabilityScan)
 
       # Authenticate Docker to GCR using predefined service connection
       - task: Docker@2
@@ -67,7 +79,7 @@ jobs:
           repository: $(repoName)
           command: 'push'
           tags: |
-            $(Build.SourceBranchName)-imagescan-$(fullSha)
+            $(imageTagBeforeVulnerabilityScan)
 
       # Download file with json-key to GCR as a later task needs to
       # authenticate in a different way than using service connection
@@ -93,5 +105,20 @@ jobs:
           projectId: 'prod-bip'
           imageHost: 'https://eu.gcr.io/'
           image: $(reponame)
-          imageTag: '$(Build.SourceBranchName)-imagescan-$(fullSha)'
+          imageTag: $(imageTagBeforeVulnerabilityScan)
+      - script: |
+          TAG=`git describe --tags`
+          echo $TAG
+          cat $(gcrJsonKey.secureFilePath) | docker login -u _json_key --password-stdin $(imageHost)
+          docker pull $(imageName):$(imageTagBeforeVulnerabilityScan)
+          docker tag $(imageName):$(imageTagBeforeVulnerabilityScan) $(imageName):$(imageTagAfterVulnerabilityScan)
+          docker push $(imageName):$(imageTagAfterVulnerabilityScan)
+        displayName: "Retagging docker image if successful vulnerability scan"
+        condition: succeeded() 
+  
+  # Pull and retag docker image. Will only run if it is a tag-operation on the repo.
+  # See https://github.com/statisticsnorway/azure-pipelines-templates/blob/master/docker/docker-tag-for-production.yml
+  - template: docker/docker-tag-for-production.yml@templates
+    parameters:
+      tagToTag: 'master-$(fullSha)'                 
 
