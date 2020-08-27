@@ -61,7 +61,7 @@ jobs:
           command: 'build'
           Dockerfile: 'Dockerfile'
           tags: |
-            $(Build.SourceBranchName)-imagescan-$(fullSha)
+            $(imageTagBeforeVulnerabilityScan)
 
       # Authenticate Docker to GCR using predefined service connection
       - task: Docker@2
