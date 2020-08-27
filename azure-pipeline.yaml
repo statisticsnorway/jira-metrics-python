@@ -29,6 +29,14 @@ variables:
   - name: imageTagAfterVulnerabilityScan
     value: $(Build.SourceBranchName)-$(fullSha)    
 
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      name: statisticsnorway/azure-pipelines-templates
+      ref: refs/tags/0.0.3
+      endpoint: github
+
 # Job which builds Docker image, pushes this to GCR and checks for any image vulnerabilities
 jobs:
   - job: buildTestDockerBuildDockerPush
