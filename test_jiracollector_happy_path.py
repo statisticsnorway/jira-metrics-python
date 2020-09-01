@@ -27,10 +27,8 @@ def test_one_project_one_metric(mock_apikey, mock_jiraconnection, mock_query):
     mock_apikey.return_value = "test_apikey"
     mock_jiraconnection.return_value = "test_jiraconnection"
     mock_query.return_value = "heioghopp"
-    
-    with open('test_simple.json') as json_file:
-        metricdescriptions = json.load(json_file)  
-    jc = JiraCollector(metricdescriptions)    
+
+    jc = JiraCollector('test_simple.json')    
     result = jc.collect()
     return result
 assert len(test_one_project_one_metric()) == 1
@@ -45,12 +43,19 @@ def test_correctly_transformed_to_json_metric(mock_apikey, mock_jiraconnection, 
     mock_jiraconnection.return_value = "test_jiraconnection"
     mock_query.return_value = "42"
     
-    with open('test_simple.json') as json_file:
-        metricdescriptions = json.load(json_file)  
-    jc = JiraCollector(metricdescriptions)    
+    jc = JiraCollector('test_simple.json')    
     result = jc.collect()
     return result
 
 # For some reason, even though mocking the queryJira method to return 42, it
 # returns mock_apikey´s value which is 'test_apikey'. I have probably misconfigured something...
 assert str(test_correctly_transformed_to_json_metric()) == '{\'jira_total_done{project_name="BIP"}\': \'test_apikey\'}'
+
+# Mocks everything up to the point where the file is loaded
+# and tests that the file is loaded OK
+@mock.patch('jiracollector.JiraCollector.getApiKey')
+@mock.patch('jiracollector.JiraCollector.getJiraConnection')
+def test_open_metricsdescriptions_file(mock_apikey, mock_jiraconnection):
+    mock_apikey.return_value = "test_apikey"
+    mock_jiraconnection.return_value = "test_jiraconnection"
+    assert JiraCollector("metricdescriptions.json")
