@@ -11,28 +11,35 @@ config = configparser.ConfigParser()
 config.read('metrics.ini')
 
 class JiraCollector(object):
-    def __init__(self):
-        self.api_key = self.getApiKey()
-        self.jira_conn = self.getJiraConnection()
+    def __init__(self,metricdescriptions):
+        logger.info("Initialising JiraCollector")
+        try:
+            self.api_key = self.getApiKey()
+            self.jira_conn = self.getJiraConnection()
+        except:
+            logger.exception("Error during initialisation of JiraCollector")
+            self.api_key = None
+            self.jira_conn = None
+            raise
+
         self.result = {}
+        self.metricdescriptions = metricdescriptions
         
     def getApiKey(self):
         logger.info('Getting API-key')
         try:
             # Get credenetials from Workload Identity
             credentials = google.auth.default()
-        except:
-            logger.exception("Could not get credentials from Google Cloud")
-        try:
             # Create client for secret manager
             client = secretmanager.SecretManagerServiceClient()
             # Fetch secret from secret manager
             name = client.secret_version_path(config.get('secrets','google_project_id'), config.get('secrets','name'), config.get('secrets','version'))
             response = client.access_secret_version(name)
             apiKey = response.payload.data
-        except Exception as e:
+        except :
             logger.exception("Could not get apiKey for Google Secret Manager")
             apiKey = None
+            raise
         return apiKey
     
     def getJiraConnection(self):
@@ -49,10 +56,9 @@ class JiraCollector(object):
 
     def collect(self):
         logger.info("Creating jql from json")
-        with open(config.get('jira','metrics_descriptions_file')) as json_file:
-            metricdescriptions = json.load(json_file)
-        for metric in metricdescriptions['metrics']:
-            for project in metricdescriptions['projects']:
+        
+        for metric in self.metricdescriptions['metrics']:
+            for project in self.metricdescriptions['projects']:
                 key = metric['name'] + "{project_name=\"" + project['name'] + "\"}"
                 jql = "project = " + project['name'] + " AND " + metric['jql']
                 value = str(self.queryJira(jql, metric['limit']))

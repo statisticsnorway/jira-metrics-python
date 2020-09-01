@@ -28,8 +28,10 @@ def collectJiraMetrics():
 
     start = datetime.now()
     logger.info('Start collecting metrics...')
-      
-    jiraCollector = JiraCollector()
+
+    with open(config.get('jira','metrics_descriptions_file')) as json_file:
+            metricdescriptions = json.load(json_file)  
+    jiraCollector = JiraCollector(metricdescriptions)
     metricsDict = jiraCollector.collect()
  
     logger.info("Converting metrics to strings")
