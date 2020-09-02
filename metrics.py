@@ -29,25 +29,33 @@ def collectJiraMetrics():
     start = datetime.now()
     logger.info('Start collecting metrics...')
     jiraCollector = JiraCollector(config.get('jira','metrics_descriptions_file'))
+    # Collect all jira metrics
     metricsDict = jiraCollector.collect()
- 
-    logger.info("Converting metrics to strings")
-    metricsStr = str(metricsDict)
-    metricsStrReplaced = metricsStr[1:-1].replace("'", "").replace(':', '').replace(",", "\n").replace(" j", "j") + "\n"
-    end = datetime.now()    
+    # Convert to metric format
+    metricsStr = stringifyJsonMetric(str(metricsDict))
 
-    # Log and add metrics for this application
-    logger.info("Adding metrics for this application")
-    totalExecutionTime = abs((end - start).seconds)
-    totalNumberOfMetrics = len(metricsDict)
-    metricsStrReplaced = metricsStrReplaced+"jira_total_number_of_metrics "+str(totalNumberOfMetrics)+"\n"
-    metricsStrReplaced = metricsStrReplaced+"jira_total_execution_time_seconds "+str(totalExecutionTime)+"\n"
-    
+    end = datetime.now()    
+    # Add metrics about this run
+    metricsStrReplaced = addInternalMetrics(metricsStrReplaced, start,end,len(metricsDict))
+        
     # Update cached metrics
     cachedMetrics = metricsStrReplaced
-    logger.info("% d metrics collected OK in %d seconds",totalNumberOfMetrics,totalExecutionTime)
+    logger.info("Metrics collected OK")
     
     serviceIsReady = True
+
+def stringifyJsonMetric(jsonMetrics):
+    logger.info("Converting metrics to strings")
+    metricsStrReplaced = jsonMetrics[1:-1].replace("'", "").replace(':', '').replace(",", "\n").replace(" j", "j") + "\n"
+    return metricsStrReplaced
+
+def addInternalMetrics(strMetrics, startTime, endTime, numberOfMetricsCollected):
+# Log and add metrics for this application
+    logger.info("Adding metrics for this application")
+    totalExecutionTime = abs((endTime - startTime).seconds)
+    strMetrics = strMetrics+"jira_total_number_of_metrics "+str(numberOfMetricsCollected)+"\n"
+    strMetrics = strMetrics+"jira_total_execution_time_seconds "+str(totalExecutionTime)+"\n"
+    return strMetrics
 
 
 # Serves the cached metrics at /
@@ -68,14 +76,16 @@ def ready(request):
     else:
         return web.Response(status=503, text="Not ready yet")
 
-
-if __name__ == "__main__":
-    logger.info("Starting app")
-    # Create a background thread to collect metrics in a "cache"
+# Create a background scheduler for collecting metrics
+def createBackgroundScheduler():
+    logger.info("Starting background scheduler")
     scheduler = BackgroundScheduler()
     job = scheduler.add_job(collectJiraMetrics, 'interval', minutes=config.getint('runtime_config','minutes_between_metrics_collection'), max_instances=1, next_run_time=datetime.now())
     scheduler.start()
 
+# Setup
+def main():
+    createBackgroundScheduler()
     # Create a webapp to serve cached metrics on / endpoint
     app = web.Application()
     app.router.add_get('/', metrics)
@@ -83,3 +93,8 @@ if __name__ == "__main__":
     app.router.add_get('/health/alive', alive)
 
     web.run_app(app)
+
+# Entrypoint
+if __name__ == "__main__":
+    logger.info("Starting app")
+    main()
