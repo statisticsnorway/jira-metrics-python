@@ -14,6 +14,7 @@ config.read('metrics.ini')
 class JiraCollector(object):
     def __init__(self,metricdescriptionsFileName):
         logger.info("Initialising JiraCollector")
+        self.result = {}
         try:
             self.api_key = self.getApiKey()
             self.jira_conn = self.getJiraConnection()
@@ -23,8 +24,7 @@ class JiraCollector(object):
             self.api_key = None
             self.jira_conn = None
             raise
-
-        self.result = {}
+        return None
                 
     def getApiKey(self):
         logger.info('Getting API-key')

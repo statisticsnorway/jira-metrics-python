@@ -25,21 +25,23 @@ serviceIsReady = False
 def collectJiraMetrics():
     global cachedMetrics
     global serviceIsReady
+    #metricsStrReplaced =""
 
     start = datetime.now()
     logger.info('Start collecting metrics...')
-    jiraCollector = JiraCollector(config.get('jira','metrics_descriptions_file'))
+    metrics_descriptions_file = config.get('jira','metrics_descriptions_file')
+    jiraCollector = JiraCollector(metrics_descriptions_file)
     # Collect all jira metrics
     metricsDict = jiraCollector.collect()
     # Convert to metric format
     metricsStr = stringifyJsonMetric(str(metricsDict))
-
     end = datetime.now()    
+
     # Add metrics about this run
-    metricsStrReplaced = addInternalMetrics(metricsStrReplaced, start,end,len(metricsDict))
-        
+    metricsStr = addInternalMetrics(metricsStr, start,end,len(metricsDict))
+
     # Update cached metrics
-    cachedMetrics = metricsStrReplaced
+    cachedMetrics = metricsStr
     logger.info("Metrics collected OK")
     
     serviceIsReady = True

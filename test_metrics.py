@@ -6,6 +6,7 @@ import urllib.request
 from unittest import mock
 from requests import request
 from aiohttp.web import Response
+from jiracollector import JiraCollector
 
 
 config = configparser.ConfigParser()
@@ -48,6 +49,19 @@ def test_ready(mock_request):
     metrics.serviceIsReady = True
     response = metrics.ready(mock_request)
     assert response.status == 200
+
+@mock.patch('jiracollector.JiraCollector.__init__',mock.Mock(return_value=None))
+@mock.patch('jiracollector.JiraCollector.collect')
+def test_collect_metrics(mock_collector):
+    metrics_dict = {
+        "jira_total_done{project_name=\"BIP\"}":"42"
+    }
+    mock_collector.return_value = metrics_dict
+
+    metrics.serviceIsReady = False
+    metrics.collectJiraMetrics()
+    assert metrics.serviceIsReady == True
+    assert metrics.cachedMetrics == "jira_total_done{project_name=\"BIP\"} 42\njira_total_number_of_metrics 1\njira_total_execution_time_seconds 0\n"
     
 
 

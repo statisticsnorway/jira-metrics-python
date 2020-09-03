@@ -28,7 +28,7 @@ def test_one_project_one_metric(mock_apikey, mock_jiraconnection, mock_query):
     mock_jiraconnection.return_value = "test_jiraconnection"
     mock_query.return_value = "heioghopp"
 
-    jc = JiraCollector('test_simple.json')    
+    jc = JiraCollector('simple_test.json')    
     result = jc.collect()
     return result
 assert len(test_one_project_one_metric()) == 1
@@ -43,7 +43,7 @@ def test_correctly_transformed_to_json_metric(mock_apikey, mock_jiraconnection, 
     mock_jiraconnection.return_value = "test_jiraconnection"
     mock_query.return_value = "42"
     
-    jc = JiraCollector('test_simple.json')    
+    jc = JiraCollector('simple_test.json')    
     result = jc.collect()
     return result
 

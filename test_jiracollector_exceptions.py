@@ -56,17 +56,4 @@ def test_that_getJiraConnection_raises_exception(mock_apikey, mock_jiraconnectio
     with pytest.raises(HTTPError):
         assert JiraCollector("NA")     
 
-#@mock.patch('google.auth.default')
-#@mock.patch('google.cloud.secretmanager.SecretManagerServiceClient')
-#@mock.patch('google.cloud.secretmanager.SecretManagerServiceClient.secret_version_path')
-#@mock.patch('google.cloud.secretmanager.SecretManagerServiceClient.access_secret_version')
-#@mock.patch('google.cloud.secretmanager.SecretManagerServiceClient.#access_secret_version.response.payload')
-#def test_secret_manager_secret_empty_secret(mock_auth, mock_client, mock_secret_version_path, mock_secret_version_data):
-#    mock_auth.return_value = ""
-#    mock_client.return_value = mock_client
-#    mock_secret_version_path.return_value = mock_secret_version_path
-#    mock_secret_version_data.return_value = None
-    #mock_secret_version_data.response.payload.data = None
-    #with pytest.raises(Exception):
-#    assert JiraCollector("not needed") 
  
