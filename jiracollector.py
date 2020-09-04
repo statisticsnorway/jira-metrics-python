@@ -37,14 +37,10 @@ class JiraCollector(object):
             name = client.secret_version_path(config.get('secrets','google_project_id'), config.get('secrets','name'), config.get('secrets','version'))
             response = client.access_secret_version(name)
             apiKey = response.payload.data
-<<<<<<< HEAD
             logger.info("Api-key is %s",apiKey)
             if not apiKey:
                 raise Exception("The data in the apikey was empty!")
         except :
-=======
-        except Exception as e:
->>>>>>> master
             logger.exception("Could not get apiKey for Google Secret Manager")
             apiKey = None
             raise
@@ -63,7 +59,6 @@ class JiraCollector(object):
             raise
         return jira_conn
 
-<<<<<<< HEAD
     def getMetricsDescriptionsFile(self, filename):
         logger.info("Opening file %s",filename)
         metricdescriptions =""
@@ -81,14 +76,6 @@ class JiraCollector(object):
         logger.info("Creating jql from json")
         for metric in self.metricdescriptions['metrics']:
             for project in self.metricdescriptions['projects']:
-=======
-    def collect(self):
-        logger.info("Creating jql from json")
-        with open(config.get('jira','metrics_descriptions_file')) as json_file:
-            metricdescriptions = json.load(json_file)
-        for metric in metricdescriptions['metrics']:
-            for project in metricdescriptions['projects']:
->>>>>>> master
                 key = metric['name'] + "{project_name=\"" + project['name'] + "\"}"
                 jql = "project = " + project['name'] + " AND " + metric['jql']
                 value = str(self.queryJira(jql, metric['limit']))
