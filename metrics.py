@@ -85,8 +85,8 @@ def createBackgroundScheduler():
     job = scheduler.add_job(collectJiraMetrics, 'interval', minutes=config.getint('runtime_config','minutes_between_metrics_collection'), max_instances=1, next_run_time=datetime.now())
     scheduler.start()
 
-# Setup
-def main():
+# Entrypoint
+if __name__ == "__main__":
     createBackgroundScheduler()
     # Create a webapp to serve cached metrics on / endpoint
     app = web.Application()
@@ -95,8 +95,3 @@ def main():
     app.router.add_get('/health/alive', alive)
 
     web.run_app(app)
-
-# Entrypoint
-if __name__ == "__main__":
-    logger.info("Starting app")
-    main()
