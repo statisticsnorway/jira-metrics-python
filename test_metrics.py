@@ -40,18 +40,14 @@ def test_collect_metrics_raises_exception_if_exception_from_jiracollector(mock_c
     metrics.serviceIsReady = False
     with pytest.raises(Exception):
         metrics.collectJiraMetrics()
-    assert metrics.serviceIsReady == False
 
-# Asserts that liveness endpoints exist
 @mock.patch('requests.request')
-def test_alive(mock_request):
+def test_alive_always_returns_200(mock_request):
     response = metrics.alive(mock_request)
     assert response.status == 200
-    response = metrics.ready(mock_request)
 
-# Asserts that readyness endpoint exists and responds correctly
 @mock.patch('requests.request')
-def test_ready(mock_request):
+def test_ready_returns_503_or_200_depending_on_serviceIsReady(mock_request):
     response = metrics.ready(mock_request)
     assert response.status == 503
     metrics.serviceIsReady = True

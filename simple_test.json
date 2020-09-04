@@ -2,7 +2,11 @@
     "projects": [
         {
             "name": "BIP"
+        },
+        {
+            "name": "DAPLA"
         }
+
     ],
     "metrics": [
         {

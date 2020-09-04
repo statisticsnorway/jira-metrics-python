@@ -23,9 +23,9 @@ logger = logging.getLogger()
 # Tests that if an Error is raised when obtaining the api-key,
 # the init method also raises an Error
 @mock.patch('google.auth.default', side_effect=mock.Mock(side_effect=Exception('Test')),autospec=True)
-def test_that_getApiKey_raises_exception(mock_google_api):
+def test_constructor_raises_exception_when_getApiKey_raises_exception(mock_google_api):
     with pytest.raises(Exception):
-        assert JiraCollector("NA")
+        assert JiraCollector("This is not a relevant input")
 
 # Mocks everything up to the point where the file is loaded
 # and tests that a non-existing file leads to an Exception

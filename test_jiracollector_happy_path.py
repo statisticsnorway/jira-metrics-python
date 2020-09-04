@@ -18,44 +18,30 @@ logging.config.fileConfig(config.get('logging'
 
 logger = logging.getLogger()
 
-# Test that the number of metrics correspond with the expected
-# from the json-file
-@mock.patch('jiracollector.JiraCollector.getApiKey')
-@mock.patch('jiracollector.JiraCollector.getJiraConnection')
 @mock.patch('jiracollector.JiraCollector.queryJira')
-def test_one_project_one_metric(mock_apikey, mock_jiraconnection, mock_query):
-    mock_apikey.return_value = "test_apikey"
-    mock_jiraconnection.return_value = "test_jiraconnection"
-    mock_query.return_value = "heioghopp"
-
-    jc = JiraCollector('simple_test.json')
+@mock.patch('jiracollector.JiraCollector.getApiKey', mock.MagicMock(return_value="test_jira_connection"))
+@mock.patch('jiracollector.JiraCollector.getJiraConnection', mock.MagicMock(return_value="test_apikey"))
+def test_collect_metrics_converts_jsonfile_to_correct_jql(mock_query_jira):
+    mock_query_jira.return_value ="42"
+    
+    jc = JiraCollector("simple_test.json")    
+    
     result = jc.collect()
-    return result
-assert len(test_one_project_one_metric()) == 1
+    assert mock_query_jira.call_count == 2
+    mock_query_jira.assert_any_call('project = BIP AND status IN ("10002")', 0)
+    mock_query_jira.assert_any_call('project = DAPLA AND status IN ("10002")', 0)
 
-# Test that the json-file gets correctly "transformed" to json-like
-# metrics
-@mock.patch('jiracollector.JiraCollector.getApiKey')
-@mock.patch('jiracollector.JiraCollector.getJiraConnection')
 @mock.patch('jiracollector.JiraCollector.queryJira')
-def test_correctly_transformed_to_json_metric(mock_apikey, mock_jiraconnection, mock_query):
-    mock_apikey.return_value = "test_apikey"
-    mock_jiraconnection.return_value = "test_jiraconnection"
-    mock_query.return_value = "42"
-
-    jc = JiraCollector('simple_test.json')
+@mock.patch('jiracollector.JiraCollector.getApiKey', mock.MagicMock(return_value="test_jira_connection"))
+@mock.patch('jiracollector.JiraCollector.getJiraConnection', mock.MagicMock(return_value="test_apikey"))
+def test_collect_metrics_converts_jql_results_to_correct_dictionary(mock_query_jira):
+    mock_query_jira.return_value ="42"
+    
+    jc = JiraCollector("simple_test.json")    
+    
     result = jc.collect()
-    return result
-
-# For some reason, even though mocking the queryJira method to return 42, it
-# returns mock_apikey´s value which is 'test_apikey'. I have probably misconfigured something...
-assert str(test_correctly_transformed_to_json_metric()) == '{\'jira_total_done{project_name="BIP"}\': \'test_apikey\'}'
-
-# Mocks everything up to the point where the file is loaded
-# and tests that the file is loaded OK
-@mock.patch('jiracollector.JiraCollector.getApiKey')
-@mock.patch('jiracollector.JiraCollector.getJiraConnection')
-def test_open_metricsdescriptions_file(mock_apikey, mock_jiraconnection):
-    mock_apikey.return_value = "test_apikey"
-    mock_jiraconnection.return_value = "test_jiraconnection"
-    assert JiraCollector("metricdescriptions.json")
+    expectedMetricsDict ={
+        "jira_total_done{project_name=\"BIP\"}":"42",
+        "jira_total_done{project_name=\"DAPLA\"}":"42"
+    }
+    assert result ==  expectedMetricsDict
