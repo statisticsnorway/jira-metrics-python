@@ -17,7 +17,7 @@ logging.config.fileConfig(config.get('logging'
 
 logger = logging.getLogger()
 
-# Test the convertion from "json-metric" to string-metric 
+# Test the convertion from "json-metric" to string-metric
 def test_stringify_json_metrics():
     jsonMetrics = '{\'jira_total_done{project_name="BIP"}\': \'42\'}'
     assert metrics.stringifyJsonMetric(jsonMetrics) == "jira_total_done{project_name=\"BIP\"} 42\n"
@@ -62,7 +62,3 @@ def test_collect_metrics(mock_collector):
     metrics.collectJiraMetrics()
     assert metrics.serviceIsReady == True
     assert metrics.cachedMetrics == "jira_total_done{project_name=\"BIP\"} 42\njira_total_number_of_metrics 1\njira_total_execution_time_seconds 0\n"
-    
-
-
-    

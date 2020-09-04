@@ -25,7 +25,7 @@ class JiraCollector(object):
             self.jira_conn = None
             raise
         return None
-                
+
     def getApiKey(self):
         logger.info('Getting API-key')
         try:
@@ -45,7 +45,7 @@ class JiraCollector(object):
             apiKey = None
             raise
         return apiKey
-    
+
     def getJiraConnection(self):
         logger.info('Connecting to Jira')
         try:
@@ -66,16 +66,14 @@ class JiraCollector(object):
             with open(filename) as json_file:
                 if os.stat(filename).st_size == 0:
                     raise FileNotFoundError("File %s is empty!",filename)
-                metricdescriptions = json.load(json_file)  
+                metricdescriptions = json.load(json_file)
         except:
             logger.exception("Error opening file %s",filename )
             raise
         return metricdescriptions
-        
 
     def collect(self):
         logger.info("Creating jql from json")
-        
         for metric in self.metricdescriptions['metrics']:
             for project in self.metricdescriptions['projects']:
                 key = metric['name'] + "{project_name=\"" + project['name'] + "\"}"

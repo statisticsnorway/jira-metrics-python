@@ -20,12 +20,12 @@ logging.config.fileConfig(config.get('logging'
 ,'config_file'), defaults=None, disable_existing_loggers=True)
 logger = logging.getLogger()
 
-# Tests that if an Error is raised when obtaining the api-key, 
+# Tests that if an Error is raised when obtaining the api-key,
 # the init method also raises an Error
 @mock.patch('google.auth.default', side_effect=mock.Mock(side_effect=Exception('Test')),autospec=True)
 def test_that_getApiKey_raises_exception(mock_google_api):
     with pytest.raises(Exception):
-        assert JiraCollector("NA") 
+        assert JiraCollector("NA")
 
 # Mocks everything up to the point where the file is loaded
 # and tests that a non-existing file leads to an Exception
@@ -35,9 +35,10 @@ def test_metricsdescriptions_file_does_not_exist(mock_apikey, mock_jiraconnectio
     mock_apikey.return_value = "test_apikey"
     mock_jiraconnection.return_value = "test_jiraconnection"
     with pytest.raises(FileNotFoundError):
-        assert JiraCollector("filedoesnotexist.json")        
-    
-# Creates an empty file ,mocks everything up to the point where the file is     loaded and tests that an Error is raised
+        assert JiraCollector("filedoesnotexist.json")
+
+# Creates an empty file ,mocks everything up to the point where the file is
+# loaded and tests that an Error is raised
 @mock.patch('jiracollector.JiraCollector.getApiKey')
 @mock.patch('jiracollector.JiraCollector.getJiraConnection')
 def test_open_empty_metricsdescriptions_file(mock_apikey, mock_jiraconnection):
@@ -54,6 +55,4 @@ def test_open_empty_metricsdescriptions_file(mock_apikey, mock_jiraconnection):
 def test_that_getJiraConnection_raises_exception(mock_apikey, mock_jiraconnection):
     mock_apikey.return_value = "test_apikey"
     with pytest.raises(HTTPError):
-        assert JiraCollector("NA")     
-
- 
+        assert JiraCollector("NA")
