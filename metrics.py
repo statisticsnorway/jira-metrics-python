@@ -25,6 +25,7 @@ serviceIsReady = False
 def collectJiraMetrics():
     global cachedMetrics
     global serviceIsReady
+<<<<<<< HEAD
     #metricsStrReplaced =""
 
     start = datetime.now()
@@ -48,6 +49,30 @@ def collectJiraMetrics():
     # Update cached metrics
     cachedMetrics = metricsStr
     logger.info("Metrics collected OK")
+=======
+
+    start = datetime.now()
+    logger.info('Start collecting metrics...')
+      
+    jiraCollector = JiraCollector()
+    metricsDict = jiraCollector.collect()
+ 
+    logger.info("Converting metrics to strings")
+    metricsStr = str(metricsDict)
+    metricsStrReplaced = metricsStr[1:-1].replace("'", "").replace(':', '').replace(",", "\n").replace(" j", "j") + "\n"
+    end = datetime.now()    
+
+    # Log and add metrics for this application
+    logger.info("Adding metrics for this application")
+    totalExecutionTime = abs((end - start).seconds)
+    totalNumberOfMetrics = len(metricsDict)
+    metricsStrReplaced = metricsStrReplaced+"jira_total_number_of_metrics "+str(totalNumberOfMetrics)+"\n"
+    metricsStrReplaced = metricsStrReplaced+"jira_total_execution_time_seconds "+str(totalExecutionTime)+"\n"
+    
+    # Update cached metrics
+    cachedMetrics = metricsStrReplaced
+    logger.info("% d metrics collected OK in %d seconds",totalNumberOfMetrics,totalExecutionTime)
+>>>>>>> master
     
     serviceIsReady = True
 
@@ -64,7 +89,10 @@ def addInternalMetrics(strMetrics, startTime, endTime, numberOfMetricsCollected)
     strMetrics = strMetrics+"jira_total_execution_time_seconds "+str(totalExecutionTime)+"\n"
     return strMetrics
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 # Serves the cached metrics at /
 def metrics(request):
     logger.info('Retrieving cached metrics')
