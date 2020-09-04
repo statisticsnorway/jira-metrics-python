@@ -1,0 +1,19 @@
+{
+    "projects": [
+        {
+            "name": "BIP"
+        },
+        {
+            "name": "DAPLA"
+        }
+
+    ],
+    "metrics": [
+        {
+            "name": "jira_total_done",
+            "description": "Not including Won't fix",
+            "jql": "status IN (\"10002\")",
+            "limit": 0
+        }
+   ]
+}
