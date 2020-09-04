@@ -30,9 +30,14 @@ def collectJiraMetrics():
     start = datetime.now()
     logger.info('Start collecting metrics...')
     metrics_descriptions_file = config.get('jira','metrics_descriptions_file')
-    jiraCollector = JiraCollector(metrics_descriptions_file)
-    # Collect all jira metrics
-    metricsDict = jiraCollector.collect()
+    try:
+        jiraCollector = JiraCollector(metrics_descriptions_file)
+        # Collect all jira metrics
+        metricsDict = jiraCollector.collect()
+    except:
+        logger.exception("Error while trying to collect metrics")
+        raise
+
     # Convert to metric format
     metricsStr = stringifyJsonMetric(str(metricsDict))
     end = datetime.now()    

@@ -7,6 +7,7 @@ from unittest import mock
 from requests import request
 from aiohttp.web import Response
 from jiracollector import JiraCollector
+import pytest
 
 
 config = configparser.ConfigParser()
@@ -17,22 +18,29 @@ logging.config.fileConfig(config.get('logging'
 
 logger = logging.getLogger()
 
-# Test the convertion from "json-metric" to string-metric
-def test_stringify_json_metrics():
-    jsonMetrics = '{\'jira_total_done{project_name="BIP"}\': \'42\'}'
-    assert metrics.stringifyJsonMetric(jsonMetrics) == "jira_total_done{project_name=\"BIP\"} 42\n"
+# Asserts that "happy-path" works, i.e the returned metrics from JiraCollector
+# is correctly converted and internal metrics are added to the cached metrics
+@mock.patch('jiracollector.JiraCollector.__init__',mock.Mock(return_value=None))
+@mock.patch('jiracollector.JiraCollector.collect')
+def test_collect_metrics(mock_collector):
+    metrics_dict = {
+        "jira_total_done{project_name=\"BIP\"}":"42"
+    }
+    mock_collector.return_value = metrics_dict
 
-# Test that internal metrics gets appended
-def test_append_internal_metrics():
-    strStartTime = '01/01/20 12:00:00'
-    start = datetime.strptime(strStartTime, '%m/%d/%y %H:%M:%S')
-    strEndTime = '01/01/20 12:00:42'
-    end = datetime.strptime(strEndTime, '%m/%d/%y %H:%M:%S')
+    metrics.serviceIsReady = False
+    metrics.collectJiraMetrics()
+    assert metrics.serviceIsReady == True
+    assert metrics.cachedMetrics == "jira_total_done{project_name=\"BIP\"} 42\njira_total_number_of_metrics 1\njira_total_execution_time_seconds 0\n"
 
-    jsonMetrics = '{\'jira_total_done{project_name="BIP"}\': \'42\'}'
-    stringMetrics = metrics.stringifyJsonMetric(jsonMetrics)
-    stringMetrics = metrics.addInternalMetrics(stringMetrics,start,end,1)
-    assert stringMetrics == "jira_total_done{project_name=\"BIP\"} 42\njira_total_number_of_metrics 1\njira_total_execution_time_seconds 42\n"
+# Asserts that an exception is raised if init or collect from Jiracollector raises an exception
+@mock.patch('jiracollector.JiraCollector.__init__',side_effect=mock.Mock(side_effect=Exception("Just for testing exception Exception")),
+)
+def test_collect_metrics_raises_exception_if_exception_from_jiracollector(mock_collector):
+    metrics.serviceIsReady = False
+    with pytest.raises(Exception):
+        metrics.collectJiraMetrics()
+    assert metrics.serviceIsReady == False
 
 # Asserts that liveness endpoints exist
 @mock.patch('requests.request')
@@ -49,16 +57,3 @@ def test_ready(mock_request):
     metrics.serviceIsReady = True
     response = metrics.ready(mock_request)
     assert response.status == 200
-
-@mock.patch('jiracollector.JiraCollector.__init__',mock.Mock(return_value=None))
-@mock.patch('jiracollector.JiraCollector.collect')
-def test_collect_metrics(mock_collector):
-    metrics_dict = {
-        "jira_total_done{project_name=\"BIP\"}":"42"
-    }
-    mock_collector.return_value = metrics_dict
-
-    metrics.serviceIsReady = False
-    metrics.collectJiraMetrics()
-    assert metrics.serviceIsReady == True
-    assert metrics.cachedMetrics == "jira_total_done{project_name=\"BIP\"} 42\njira_total_number_of_metrics 1\njira_total_execution_time_seconds 0\n"
